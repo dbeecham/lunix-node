@@ -1,0 +1,70 @@
+#!/usr/bin/env node
+/*jslint node: true */
+
+// All global variables here.
+// No further clobbering of the global object.
+var optimist, argv,
+    http, server;
+
+// Requires
+optimist = require('optimist');
+http     = require('http');
+
+// Optimist
+argv = optimist
+    .usage('LUnix web server.\nUsage: $0')
+    .options({
+        'u': {
+            alias:   'user',
+            default: 'node'
+        },
+        'g': {
+            alias:   'group',
+            default: 'nogroup'
+        },
+        'l': {
+            alias:   'listen',
+            default: 'localhost'
+        },
+        'p': {
+            alias:   'port',
+            default: 8080
+        },
+        'h': {
+            alias:   'help'
+        },
+        'v': {
+            alias:   'verbose'
+        }
+    })
+    .argv;
+
+if (argv.h) {
+    optimist.showHelp();
+    process.exit(0);
+}
+
+if (argv.v) {
+    console.log('Listening on host '
+                + argv.listen
+                + ', port '
+                + argv.port
+                + '\n');
+}
+
+// create server
+server = new http.Server();
+server.on('request', function (request, response) {
+    'use strict';
+    response.writeHead(200, {'Content-Type': 'text/plain'});
+    response.write('Hello, world.\n');
+    response.end();
+});
+
+server.listen(argv.port, argv.host);
+
+if (argv.v) {
+    console.log('ok.');
+}
+
+// vim: filetype=javascript
