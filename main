@@ -12,7 +12,7 @@ optimist = require('optimist');
 http     = require('http');
 // }}}
 
-// Optimist {{{
+// Argument handling {{{
 argv = optimist
     .usage('LUnix web server.\nUsage: $0')
     .options({
@@ -48,8 +48,9 @@ if (argv.help) {
 
 // }}}
 
-// drop privileges {{{
+// Drop privileges {{{
 if (argv.user) {
+    console.log(argv.user);
     if (argv.verbose) {
         console.log('Dropping privileges to '
                     + argv.user
@@ -73,6 +74,10 @@ if (argv.user) {
 // }}}
 
 // create server {{{
+server = {};
+server.server = new http.Server();
+server.dispatch = require('./dispatcher.js');
+
 if (argv.verbose) {
     console.log('Listening on host '
                 + argv.listen
@@ -81,15 +86,15 @@ if (argv.verbose) {
                 + '.\n');
 }
 
-server = new http.Server();
-server.on('request', function (request, response) {
-    'use strict';
-    response.writeHead(200, {'Content-Type': 'text/plain'});
-    response.write('Hello, world.\n');
-    response.end();
-});
 
-server.listen(argv.port, argv.host);
+// Request handler {{{
+server.server.on('request', function (request, response) {
+    'use strict';
+    server.dispatch(request.url)(request, response);
+});
+// }}}
+
+server.server.listen(argv.port, argv.host);
 
 if (argv.verbose) {
     console.log('ok.');
