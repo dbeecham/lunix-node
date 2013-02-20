@@ -1,16 +1,18 @@
 #!/usr/bin/env node
 /*jslint node: true */
 
-// All global variables here.
+// All global variables here. {{{
 // No further clobbering of the global object.
 var optimist, argv,
     http, server;
+// }}}
 
-// Requires
+// Requires {{{
 optimist = require('optimist');
 http     = require('http');
+// }}}
 
-// Optimist
+// Optimist {{{
 argv = optimist
     .usage('LUnix web server.\nUsage: $0')
     .options({
@@ -39,20 +41,46 @@ argv = optimist
     })
     .argv;
 
-if (argv.h) {
+if (argv.help) {
     optimist.showHelp();
     process.exit(0);
 }
 
-if (argv.v) {
+// }}}
+
+// drop privileges {{{
+if (argv.user) {
+    if (argv.verbose) {
+        console.log('Dropping privileges to '
+                    + argv.user
+                    + ':'
+                    + argv.group
+                    + '...');
+    }
+
+    try {
+        process.setgid(argv.group);
+        process.setuid(argv.user);
+    } catch (e) {
+        console.log('Failed: ' + e.message);
+        process.exit(1);
+    }
+
+    if (argv.verbose) {
+        console.log('ok.');
+    }
+}
+// }}}
+
+// create server {{{
+if (argv.verbose) {
     console.log('Listening on host '
                 + argv.listen
                 + ', port '
                 + argv.port
-                + '\n');
+                + '.\n');
 }
 
-// create server
 server = new http.Server();
 server.on('request', function (request, response) {
     'use strict';
@@ -63,8 +91,9 @@ server.on('request', function (request, response) {
 
 server.listen(argv.port, argv.host);
 
-if (argv.v) {
+if (argv.verbose) {
     console.log('ok.');
 }
+// }}}
 
 // vim: filetype=javascript
