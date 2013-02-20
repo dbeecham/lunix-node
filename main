@@ -90,6 +90,7 @@ if (argv.verbose) {
 // Request handler {{{
 server.server.on('request', function (request, response) {
     'use strict';
+    console.log('Request: ' + request.url);
     server.dispatch(request.url)(request, response);
 });
 // }}}

@@ -5,12 +5,21 @@ module.exports = (function () {
 
     // closure
     var url = require('url'),
-        handlers = require('./dispatch.json');
+        handlers = require('./dispatch.json'),
+        handler;
 
     return function (uri) { // TODO: ugly names
 
         // TODO: regexp this
-        return require('./handlers/' + handlers[url.parse(uri).pathname] + '.js');
+        handler = handlers[url.parse(uri).pathname];
+        if (handler) {
+            return require('./handlers/' + handlers[url.parse(uri).pathname] + '.js');
+        }
+
+        return function (request, response) { // Handle this better.
+            response.writeHead(404, {'Content-Type': 'text/plain'});
+            response.end('404!\n');
+        };
     };
 }());
 
