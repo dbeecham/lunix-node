@@ -49,7 +49,7 @@ if (argv.help) {
 // }}}
 
 // Drop privileges {{{
-if (argv.user) {
+if (process.getuid() === 0 && argv.user) {
     console.log(argv.user);
     if (argv.verbose) {
         console.log('Dropping privileges to '
