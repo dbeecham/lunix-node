@@ -68,11 +68,13 @@ if (process.getuid() === 0 && argv.user) {
 // Signal handling  {{{
 
 process.on('SIGINT', function () {
+    'use strict';
     process.stdout.write('SIGINT cought. Exiting...\n');
     process.exit(0);
 });
 
 process.on('SIGTERM', function () {
+    'use strict';
     process.stdout.write('SIGTERM cought. Exiting...\n');
     process.exit(0);
 });
@@ -85,13 +87,11 @@ server.server = new http.Server();
 server.route = require('./router.js');
 
 
-// Request handler {{{
 server.server.on('request', function (request, response) {
     'use strict';
     process.stdout.write('Processing request \'' + request.url + '\'... ');
-    server.route(request.url)(request, response);
+    server.route(request, response);
 });
-// }}}
 
 process.stdout.write('Listening on host '
     + argv.listen

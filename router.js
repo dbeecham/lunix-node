@@ -8,20 +8,19 @@ module.exports = (function () {
         handlers = require('./routes.json'),
         handler;
 
-    return function (uri) { // TODO: ugly names
+    return function (request, response) {
 
         // TODO: regexp this
-        handler = handlers[url.parse(uri).pathname];
+        handler = handlers[url.parse(request.url).pathname];
         if (handler) {
             process.stdout.write('found.\n');
-            return require('./handlers/' + handlers[url.parse(uri).pathname] + '.js');
+            require('./handlers/' + handler + '.js')(request, response); // TODO: Cache these?
         }
 
-        return function (request, response) { // Handle this better.
-            process.stdout.write('404.\n');
-            response.writeHead(404, {'Content-Type': 'text/plain'});
-            response.end('404!\n');
-        };
+        // 404
+        process.stdout.write('404.\n');
+        response.writeHead(404, {'Content-Type': 'text/plain'});
+        response.end('404!\n');
     };
 }());
 
