@@ -34,9 +34,6 @@ argv = optimist
         },
         'h': {
             alias:   'help'
-        },
-        'v': {
-            alias:   'verbose'
         }
     })
     .argv;
@@ -50,56 +47,62 @@ if (argv.help) {
 
 // Drop privileges {{{
 if (process.getuid() === 0 && argv.user) {
-    console.log(argv.user);
-    if (argv.verbose) {
-        console.log('Dropping privileges to '
-                    + argv.user
-                    + ':'
-                    + argv.group
-                    + '...');
-    }
+    process.stdout.write('Dropping privileges to '
+        + argv.user
+        + ':'
+        + argv.group
+        + '... ');
 
     try {
         process.setgid(argv.group);
         process.setuid(argv.user);
     } catch (e) {
-        console.log('Failed: ' + e.message);
+        process.stderr.write('Failed: ' + e.message + '\n');
         process.exit(1);
     }
 
-    if (argv.verbose) {
-        console.log('ok.');
-    }
+    process.stdout.write('ok.\n');
 }
+// }}}
+
+// Signal handling  {{{
+
+process.on('SIGINT', function () {
+    process.stdout.write('SIGINT cought. Exiting...\n');
+    process.exit(0);
+});
+
+process.on('SIGTERM', function () {
+    process.stdout.write('SIGTERM cought. Exiting...\n');
+    process.exit(0);
+});
+
 // }}}
 
 // create server {{{
 server = {};
 server.server = new http.Server();
-server.dispatch = require('./dispatcher.js');
-
-if (argv.verbose) {
-    console.log('Listening on host '
-                + argv.listen
-                + ', port '
-                + argv.port
-                + '.\n');
-}
+server.route = require('./router.js');
 
 
 // Request handler {{{
 server.server.on('request', function (request, response) {
     'use strict';
-    console.log('Request: ' + request.url);
-    server.dispatch(request.url)(request, response);
+    process.stdout.write('Processing request \'' + request.url + '\'... ');
+    server.route(request.url)(request, response);
 });
 // }}}
 
+process.stdout.write('Listening on host '
+    + argv.listen
+    + ', port '
+    + argv.port
+    + '... ');
+
 server.server.listen(argv.port, argv.host);
 
-if (argv.verbose) {
-    console.log('ok.');
-}
+process.stdout.write('ok.\n');
+
 // }}}
 
 // vim: filetype=javascript
